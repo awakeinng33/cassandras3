@@ -20,15 +20,17 @@ def view_cmd():  # pragma: no cover
               help='Select the region for your bucket.')
 @click.option('--keyspace', prompt='Your keyspace to view',
               help='The cassandra keyspace to view backups for.')
+@click.option('--host', default='127.0.0.1',
+              help='The host to use for viewing backups.')
 @click.option('--hostname', default='',
               help='The hostname to use for viewing backups.')
 @click.option('--bucket', prompt='Your s3 bucket to view from',
               help='The s3 bucket used to fetch the view from.')
-def view(region, keyspace, hostname, bucket):  # pragma: no cover
-    do_view(region, keyspace, hostname, bucket)
+def view(region, keyspace, host, hostname, bucket):  # pragma: no cover
+    do_view(region, keyspace, host, hostname, bucket)
 
 
-def do_view(region, keyspace, hostname, bucket):
+def do_view(region, host, keyspace, hostname, bucket):
     setup_logging(logging.WARN)
 
     clients = ClientCache(region)
@@ -36,4 +38,4 @@ def do_view(region, keyspace, hostname, bucket):
         hostname = socket.gethostname()
 
     node = NodeTool(clients, hostname)
-    node.view(keyspace, bucket)
+    node.view(host, keyspace, bucket)

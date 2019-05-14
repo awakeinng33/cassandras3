@@ -6,11 +6,10 @@ logger = logging.getLogger('cassandras3')
 
 
 class NodeTool(object):
-    def __init__(self, clients, hostname='localhost', host='127.0.0.1', port=7199,
+    def __init__(self, clients, host='127.0.0.1', port=7199,
                  cassandra_data_dir='/var/lib/cassandra/data', jmxusername='', jmxpassword='',
                  kmskeyid=''):
         self.s3 = clients.s3()
-        self.hostname = hostname
         self.host = host
         self.port = port
         self.cassandra_data_dir = cassandra_data_dir
@@ -18,7 +17,7 @@ class NodeTool(object):
         self.jmxpassword = jmxpassword
         self.kmskeyid = kmskeyid
 
-    def backup(self, keyspace, bucket, timestamp):
+    def backup(self, hostname, keyspace, bucket, timestamp):
         """
         Execute a backup to a specific s3 bucket with a specific timestamp.
         :param bucket: S3 bucket used for backup.
@@ -28,8 +27,8 @@ class NodeTool(object):
         logger.debug('Backing up cassandra "%s" to bucket "%s"',
                      keyspace, bucket)
 
-        tag = '%s-%s-%s' % (self.hostname, keyspace, timestamp)
-        s3_path = '%s/%s/%s' % (self.hostname, keyspace, timestamp)
+        tag = '%s-%s-%s' % (hostname, keyspace, timestamp)
+        s3_path = '%s/%s/%s' % (hostname, keyspace, timestamp)
 
         self._snapshot(keyspace, tag)
 
@@ -47,7 +46,7 @@ class NodeTool(object):
 
         self._clearsnapshot(keyspace, tag)
 
-    def restore(self, keyspace, bucket, timestamp):
+    def restore(self, hostname, keyspace, bucket, timestamp):
         """
         Restore a backup to a specific s3 bucket with a specific timestamp.
         :param bucket: S3 bucket used for restore.
@@ -57,7 +56,7 @@ class NodeTool(object):
         logger.debug('Restoring cassandra "%s" from bucket "%s"',
                      keyspace, bucket)
 
-        s3_path = '%s/%s/%s' % (self.hostname, keyspace, timestamp)
+        s3_path = '%s/%s/%s' % (hostname, keyspace, timestamp)
         list_objects = self._folders(bucket, s3_path)
         tables = []
         for filename in list(list_objects):
@@ -74,8 +73,8 @@ class NodeTool(object):
 
         print('Successfully restored your cassandra keyspace!')
 
-    def view(self, keyspace, bucket):
-        prefix = '%s/%s/' % (self.hostname, keyspace)
+    def view(self, hostname, keyspace, bucket):
+        prefix = '%s/%s/' % (hostname, keyspace)
 
         try:
             view_objects = self.s3.list_objects(

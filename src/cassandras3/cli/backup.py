@@ -21,6 +21,8 @@ def backup_cmd():  # pragma: no cover
               help='Select the region for your bucket.')
 @click.option('--host', default='127.0.0.1',
               help='Address of the cassandra host')
+@click.option('--hostname', default='127.0.0.1',
+              help='Address of the cassandra hostname')
 @click.option('--port', default='7199',
               help='Port of the cassandra host')
 @click.option('--keyspace', prompt='Your keyspace to backup',
@@ -36,19 +38,21 @@ def backup_cmd():  # pragma: no cover
               help='Cassandra JMX password for nodetool')
 @click.option('--kmskeyid', default='',
               help='The KMS key id for the bucket S3')
-def backup(region, host, port, keyspace, bucket, datadir,
+def backup(region, host, hostname, port, keyspace, bucket, datadir,
            jmxusername, jmxpassword, kmskeyid):  # pragma: no cover
-    do_backup(region, host, port, keyspace, bucket, datadir, jmxusername, jmxpassword, kmskeyid)
+    do_backup(region, host, hostname, port, keyspace, bucket, datadir, jmxusername, jmxpassword, kmskeyid)
 
 
-def do_backup(region, host, port, keyspace, bucket, datadir,
+def do_backup(region, host, hostname, port, keyspace, bucket, datadir,
               jmxusername, jmxpassword, kmskeyid):
     setup_logging(logging.WARN)
 
     clients = ClientCache(region)
-    hostname = socket.gethostname()
 
     timestamp = int(time.time())
 
-    node = NodeTool(clients, hostname, host, port, datadir, jmxusername, jmxpassword, kmskeyid)
-    node.backup(keyspace, bucket, timestamp)
+    if not hostname:
+        hostname = socket.gethostname()
+
+    node = NodeTool(clients, host, port, datadir, jmxusername, jmxpassword, kmskeyid)
+    node.backup(hostname, keyspace, bucket, timestamp)
